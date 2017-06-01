@@ -1,8 +1,8 @@
+from django.conf.urls import url
 from django.contrib import admin
-from django.conf.urls import patterns
 from invoice.models import Invoice, InvoiceItem, Currency
 from invoice.views import pdf_view
-from invoice.forms import InvoiceAdminForm
+#from invoice.forms import InvoiceAdminForm
 
 
 class InvoiceItemInline(admin.TabularInline):
@@ -10,6 +10,7 @@ class InvoiceItemInline(admin.TabularInline):
 
 
 class InvoiceAdmin(admin.ModelAdmin):
+
     inlines = [InvoiceItemInline, ]
     fieldsets = (
         (None, {
@@ -26,13 +27,13 @@ class InvoiceAdmin(admin.ModelAdmin):
         'invoiced',
         'paid_date',
     )
-    form = InvoiceAdminForm
+   # form = InvoiceAdminForm
     actions = ['send_invoice', ]
 
     def get_urls(self):
         urls = super(InvoiceAdmin, self).get_urls()
         wrapped_pdf_view = self.admin_site.admin_view(pdf_view)
-        return patterns('', (r'^(.+)/pdf/$', wrapped_pdf_view)) + urls
+        return [url(r'^(.+)/change/pdf/$', wrapped_pdf_view)] + urls
 
     def send_invoice(self, request, queryset):
         for invoice in queryset.all():

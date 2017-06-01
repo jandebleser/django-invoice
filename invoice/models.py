@@ -16,6 +16,7 @@ from addressbook.models import Address
 from .utils import format_currency, friendly_id
 from .conf import settings as app_settings
 from .pdf import draw_pdf
+from django.conf import settings
 
 
 class Currency(models.Model):
@@ -38,7 +39,7 @@ class InvoiceManager(models.Manager):
 
 
 class Invoice(TimeStampedModel):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     currency = models.ForeignKey(Currency, blank=True, null=True)
     address = models.ForeignKey(Address, related_name='%(class)s_set')
     invoice_id = models.CharField(unique=True, max_length=6, null=True,

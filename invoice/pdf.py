@@ -18,7 +18,7 @@ def draw_header(canvas):
     canvas.setFillColorRGB(0.2, 0.2, 0.2)
     canvas.setFont('Helvetica', 16)
     canvas.drawString(18 * cm, -1 * cm, 'Invoice')
-    canvas.drawInlineImage(settings.INV_LOGO, 1 * cm, -1 * cm, 250, 16)
+   # canvas.drawInlineImage(settings.INV_LOGO, 1 * cm, -1 * cm, 250, 16)
     canvas.setLineWidth(4)
     canvas.line(0, -1.25 * cm, 21.7 * cm, -1.25 * cm)
 
@@ -102,7 +102,7 @@ def draw_pdf(buffer, invoice):
     textobject = canvas.beginText(1.5 * cm, -6.75 * cm)
     textobject.textLine(u'Invoice ID: %s' % invoice.invoice_id)
     textobject.textLine(u'Invoice Date: %s' % invoice.invoice_date.strftime('%d %b %Y'))
-    textobject.textLine(u'Client: %s' % invoice.user.username)
+    textobject.textLine(u'Client: %s' % invoice.user.email)
     canvas.drawText(textobject)
 
     # Items
