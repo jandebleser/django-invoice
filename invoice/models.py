@@ -43,11 +43,14 @@ class Invoice(TimeStampedModel):
     currency = models.ForeignKey(Currency, blank=True, null=True)
     address = models.ForeignKey(Address, related_name='%(class)s_set')
     invoice_id = models.CharField(unique=True, max_length=6, null=True,
-                                  blank=True, editable=False)
+                                  blank=True, editable=True)
     invoice_date = models.DateField(default=date.today)
     invoiced = models.BooleanField(default=False)
     draft = models.BooleanField(default=False)
     paid_date = models.DateField(blank=True, null=True)
+
+    company_name = models.CharField(max_length=200, blank=True)
+    tax_id_number = models.CharField(max_length=50, blank=True)
 
     objects = InvoiceManager()
 

@@ -86,6 +86,14 @@ def draw_pdf(buffer, invoice):
 
     # Client address
     textobject = canvas.beginText(1.5 * cm, -2.5 * cm)
+    if invoice.company_name:
+        textobject.setFont('Helvetica-Bold', 10)
+        textobject.textLine(invoice.company_name)
+        textobject.setFont('Helvetica', 10)
+
+    if invoice.tax_id_number:
+        textobject.textLine('TIN: {}'.format(invoice.tax_id_number))
+
     if invoice.address.contact_name:
         textobject.textLine(invoice.address.contact_name)
     textobject.textLine(invoice.address.address_one)
