@@ -39,7 +39,7 @@ class InvoiceManager(models.Manager):
 
 
 class Invoice(TimeStampedModel):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="profile")
     currency = models.ForeignKey(Currency, blank=True, null=True)
     address = models.ForeignKey(Address, related_name='%(class)s_set')
     invoice_id = models.CharField(unique=True, max_length=6, null=True,
@@ -64,17 +64,14 @@ class Invoice(TimeStampedModel):
         try:
             self.address
         except Address.DoesNotExist:
-            try:
-                self.address = self.user.get_profile().address
-            except User.DoesNotExist:
-                pass
+            pass
 
         super(Invoice, self).save(*args, **kwargs)
 
-        if not self.invoice_id:
-            self.invoice_id = friendly_id.encode(self.pk)
-            kwargs['force_insert'] = False
-            super(Invoice, self).save(*args, **kwargs)
+       # if not self.invoice_id:
+       #     self.invoice_id = friendly_id.encode(self.pk)
+       #     kwargs['force_insert'] = False
+       #     super(Invoice, self).save(*args, **kwargs)
 
     def total_amount(self):
         return format_currency(self.total(), self.currency)
@@ -109,10 +106,12 @@ class Invoice(TimeStampedModel):
         try:
             template = get_template("invoice/invoice_email.html")
             body = template.render(Context(email_kwargs))
+            body_type = "text/html"
         except TemplateDoesNotExist:
             body = render_to_string("invoice/invoice_email.txt", email_kwargs)
+            body_type = "text/plain"
         email = EmailMultiAlternatives(subject=subject, body=strip_tags(body), to=[self.user.email])
-        email.attach_alternative(body, "text/html")
+        email.attach_alternative(body, body_type)
         email.attach(attachment)
         email.send()
 

@@ -91,9 +91,6 @@ def draw_pdf(buffer, invoice):
         textobject.textLine(invoice.company_name)
         textobject.setFont('Helvetica', 10)
 
-    if invoice.tax_id_number:
-        textobject.textLine('TIN: {}'.format(invoice.tax_id_number))
-
     if invoice.address.contact_name:
         textobject.textLine(invoice.address.contact_name)
     textobject.textLine(invoice.address.address_one)
@@ -104,6 +101,8 @@ def draw_pdf(buffer, invoice):
         textobject.textLine(invoice.address.county)
     textobject.textLine(invoice.address.postcode)
     textobject.textLine(invoice.address.country.name)
+    if invoice.tax_id_number:
+        textobject.textLine('TIN: {}'.format(invoice.tax_id_number))
     canvas.drawText(textobject)
 
     # Info
