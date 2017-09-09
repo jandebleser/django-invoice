@@ -110,7 +110,9 @@ class Invoice(TimeStampedModel):
         except TemplateDoesNotExist:
             body = render_to_string("invoice/invoice_email.txt", email_kwargs)
             body_type = "text/plain"
-        email = EmailMultiAlternatives(subject=subject, body=strip_tags(body), to=[self.user.email])
+
+        bcc = [admin[1] for admin in settings.ADMINS]
+        email = EmailMultiAlternatives(subject=subject, body=strip_tags(body), to=[self.user.email], bcc=bcc)
         email.attach_alternative(body, body_type)
         email.attach(attachment)
         email.send()
