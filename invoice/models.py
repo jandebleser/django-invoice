@@ -66,6 +66,9 @@ class Invoice(TimeStampedModel):
         except Address.DoesNotExist:
             pass
 
+        if self.invoice_id == '':
+            self.invoice_id = None
+
         super(Invoice, self).save(*args, **kwargs)
 
        # if not self.invoice_id:
