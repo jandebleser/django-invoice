@@ -1,6 +1,6 @@
+import io
 from datetime import date
 from decimal import Decimal
-from StringIO import StringIO
 from email.mime.application import MIMEApplication
 
 from django.db import models
@@ -89,7 +89,7 @@ class Invoice(TimeStampedModel):
         return u'Invoice %s.pdf' % self.invoice_id
 
     def send_invoice(self):
-        pdf = StringIO()
+        pdf = io.StringIO()
         draw_pdf(pdf, self)
         pdf.seek(0)
 
