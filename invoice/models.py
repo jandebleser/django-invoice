@@ -6,6 +6,7 @@ from email.mime.application import MIMEApplication
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.db.models import CASCADE
 from django_extensions.db.models import TimeStampedModel
 from django.template.loader import render_to_string, get_template
 from django.template import TemplateDoesNotExist, Context
@@ -39,9 +40,9 @@ class InvoiceManager(models.Manager):
 
 
 class Invoice(TimeStampedModel):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="profile")
-    currency = models.ForeignKey(Currency, blank=True, null=True)
-    address = models.ForeignKey(Address, related_name='%(class)s_set')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="profile", on_delete=CASCADE)
+    currency = models.ForeignKey(Currency, blank=True, null=True, on_delete=CASCADE)
+    address = models.ForeignKey(Address, related_name='%(class)s_set', on_delete=CASCADE)
     invoice_id = models.CharField(unique=True, max_length=6, null=True,
                                   blank=True, editable=True)
     invoice_date = models.DateField(default=date.today)
@@ -125,7 +126,7 @@ class Invoice(TimeStampedModel):
 
 
 class InvoiceItem(models.Model):
-    invoice = models.ForeignKey(Invoice, related_name='items', unique=False)
+    invoice = models.ForeignKey(Invoice, related_name='items', unique=False, on_delete=CASCADE)
     description = models.CharField(max_length=100)
     unit_price = models.DecimalField(max_digits=8, decimal_places=2)
     quantity = models.DecimalField(max_digits=8, decimal_places=2, default=1)
