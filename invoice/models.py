@@ -28,6 +28,9 @@ class Currency(models.Model):
     def __unicode__(self):
         return self.code
 
+    def __str__(self):
+        return self.code
+
 
 class InvoiceManager(models.Manager):
     def get_invoiced(self):
