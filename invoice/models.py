@@ -93,7 +93,7 @@ class Invoice(TimeStampedModel):
         return u'Invoice %s.pdf' % self.invoice_id
 
     def send_invoice(self):
-        pdf = io.StringIO()
+        pdf = io.BytesIO()
         draw_pdf(pdf, self)
         pdf.seek(0)
 
@@ -112,7 +112,7 @@ class Invoice(TimeStampedModel):
         }
         try:
             template = get_template("invoice/invoice_email.html")
-            body = template.render(Context(email_kwargs))
+            body = template.render(email_kwargs)
             body_type = "text/html"
         except TemplateDoesNotExist:
             body = render_to_string("invoice/invoice_email.txt", email_kwargs)
