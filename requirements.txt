@@ -1,5 +1,5 @@
-Django
+Django==5.0.4
 
-django-addresses
-django-extensions
-reportlab
+git+https://github.com/simonluijk/django-addresses.git@v0.2.0b1
+django-extensions==3.2.1
+reportlab==3.6.11

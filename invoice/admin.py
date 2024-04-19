@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path
 from django.contrib import admin
 from invoice.models import Invoice, InvoiceItem, Currency
 from invoice.views import pdf_view
@@ -33,7 +33,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(InvoiceAdmin, self).get_urls()
         wrapped_pdf_view = self.admin_site.admin_view(pdf_view)
-        return [url(r'^(.+)/change/pdf/$', wrapped_pdf_view)] + urls
+        return [re_path(r'^(.+)/change/pdf/$', wrapped_pdf_view)] + urls
 
     def send_invoice(self, request, queryset):
         for invoice in queryset.all():
