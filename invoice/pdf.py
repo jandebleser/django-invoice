@@ -2,6 +2,7 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import Table
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
+from reportlab.platypus.para import Paragraph
 
 try:
     from django.utils import importlib
@@ -112,12 +113,16 @@ def draw_pdf(buffer, invoice):
     textobject.textLine(u'Client: %s' % invoice.user.email)
     canvas.drawText(textobject)
 
+    from reportlab.lib.styles import getSampleStyleSheet
+    styles = getSampleStyleSheet()
+    body_text_style = styles["BodyText"]
+
     # Items
     data = [[u'Quantity', u'Description', u'Amount', u'Total'], ]
     for item in invoice.items.all():
         data.append([
             item.quantity,
-            item.description,
+            Paragraph(item.description, body_text_style),
             format_currency(item.unit_price, invoice.currency),
             format_currency(item.total(), invoice.currency)
         ])
