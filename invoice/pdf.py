@@ -1,3 +1,5 @@
+from typing import Union
+
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import Table
 from reportlab.lib.pagesizes import A4
@@ -13,7 +15,7 @@ from invoice.conf import settings
 from invoice.utils import format_currency
 
 
-def draw_header(canvas):
+def draw_header(canvas, invoice: Union['Invoice', 'CreditNote']):
     """ Draws the invoice header """
     canvas.setStrokeColorRGB(0.9, 0.5, 0.2)
     canvas.setFillColorRGB(0.2, 0.2, 0.2)
@@ -24,7 +26,7 @@ def draw_header(canvas):
     canvas.line(0, -1.25 * cm, 21.7 * cm, -1.25 * cm)
 
 
-def draw_address(canvas):
+def draw_address(canvas, invoice: Union['Invoice', 'CreditNote']):
     """ Draws the business address """
     business_details = (
         u'COMPANY NAME LTD',
@@ -47,7 +49,7 @@ def draw_address(canvas):
     canvas.drawText(textobject)
 
 
-def draw_footer(canvas):
+def draw_footer(canvas, invoice: Union['Invoice', 'CreditNote']):
     """ Draws the invoice footer """
     note = (
         u'Bank Details: Street address, Town, County, POSTCODE',
@@ -67,22 +69,22 @@ address_func = inv_module.draw_address
 footer_func = inv_module.draw_footer
 
 
-def draw_pdf(buffer, invoice):
+def draw_pdf(buffer, invoice: Union['Invoice', 'CreditNote']):
     """ Draws the invoice """
     canvas = Canvas(buffer, pagesize=A4)
     canvas.translate(0, 29.7 * cm)
     canvas.setFont('Helvetica', 10)
 
     canvas.saveState()
-    header_func(canvas)
+    header_func(canvas, invoice)
     canvas.restoreState()
 
     canvas.saveState()
-    footer_func(canvas)
+    footer_func(canvas, invoice)
     canvas.restoreState()
 
     canvas.saveState()
-    address_func(canvas)
+    address_func(canvas, invoice)
     canvas.restoreState()
 
     # Client address
@@ -108,9 +110,12 @@ def draw_pdf(buffer, invoice):
 
     # Info
     textobject = canvas.beginText(1.5 * cm, -6.75 * cm)
-    textobject.textLine(u'Invoice ID: %s' % invoice.invoice_id)
-    textobject.textLine(u'Invoice Date: %s' % invoice.invoice_date.strftime('%d %b %Y'))
+    textobject.textLine(u'%s ID: %s' % (invoice.__name__, invoice.invoice_id))
+    textobject.textLine(u'%s Date: %s' % (invoice.__name__, invoice.invoice_date.strftime('%d %b %Y')))
     textobject.textLine(u'Client: %s' % invoice.user.email)
+    if hasattr(invoice, "reason") and getattr(invoice, "reason"):
+        textobject.textLine(u'Reason: %s' % invoice.reason)
+
     canvas.drawText(textobject)
 
     from reportlab.lib.styles import getSampleStyleSheet
@@ -138,7 +143,7 @@ def draw_pdf(buffer, invoice):
         ('BACKGROUND', (0, 0), (-1, 0), (0.8, 0.8, 0.8)),
     ])
     tw, th, = table.wrapOn(canvas, 15 * cm, 19 * cm)
-    table.drawOn(canvas, 1 * cm, -8 * cm - th)
+    table.drawOn(canvas, 1 * cm, -9 * cm - th)
 
     canvas.showPage()
     canvas.save()

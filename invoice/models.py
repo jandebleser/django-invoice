@@ -43,6 +43,8 @@ class InvoiceManager(models.Manager):
 
 
 class Invoice(TimeStampedModel):
+    __name__ = "Invoice"
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="profile", on_delete=CASCADE)
     currency = models.ForeignKey(Currency, blank=True, null=True, on_delete=CASCADE)
     address = models.ForeignKey(Address, related_name='%(class)s_set', on_delete=CASCADE)
@@ -130,6 +132,97 @@ class Invoice(TimeStampedModel):
 
 class InvoiceItem(models.Model):
     invoice = models.ForeignKey(Invoice, related_name='items', unique=False, on_delete=CASCADE)
+    description = models.CharField(max_length=200)
+    unit_price = models.DecimalField(max_digits=8, decimal_places=2)
+    quantity = models.DecimalField(max_digits=8, decimal_places=2, default=1)
+
+    def total(self):
+        total = Decimal(str(self.unit_price * self.quantity))
+        return total.quantize(Decimal('0.01'))
+
+    def __unicode__(self):
+        return self.description
+
+class CreditNote(TimeStampedModel):
+    __name__ = "Credit Note"
+
+    credit_note_id = models.CharField(unique=True, max_length=6, null=True,
+                                  blank=True, editable=True)
+    original_invoice = models.ForeignKey(Invoice, null=False, on_delete=CASCADE)
+    draft = models.BooleanField(default=False)
+    repaid_date = models.DateField(blank=True, null=True)
+    credit_note_date = models.DateField(default=date.today)
+    reason = models.CharField(max_length=255, blank=True, null=True)
+
+    def __unicode__(self):
+        return u'%s (%s)' % (self.credit_note_id, self.total_amount())
+
+    class Meta:
+        ordering = ('-credit_note_date', 'id')
+
+    def save(self, *args, **kwargs):
+        if self.credit_note_id == '':
+            self.invoice_id = None
+
+        super(CreditNote, self).save(*args, **kwargs)
+
+    def total_amount(self):
+        return format_currency(self.total(), self.original_invoice.currency)
+
+    def total(self):
+        total = Decimal('0.00')
+        for item in self.items.all():
+            total = total + item.total()
+        return total
+
+    def file_name(self):
+        return u'Credit Note %s.pdf' % self.credit_note_id
+
+    def send_credit_note(self):
+        pdf = io.BytesIO()
+        draw_pdf(pdf, self)
+        pdf.seek(0)
+
+        attachment = MIMEApplication(pdf.read())
+        attachment.add_header("Content-Disposition", "attachment",
+                              filename=self.file_name())
+        pdf.close()
+
+        subject = app_settings.INV_EMAIL_SUBJECT % {"credit_note_id": self.credit_note_id}
+        email_kwargs = {
+            "credit_note": self,
+            "SITE_NAME": settings.SITE_NAME,
+            "INV_CURRENCY": app_settings.INV_CURRENCY,
+            "INV_CURRENCY_SYMBOL": app_settings.INV_CURRENCY_SYMBOL,
+            "SUPPORT_EMAIL": settings.MANAGERS[0][1],
+        }
+        try:
+            template = get_template("invoice/credit_note_email.html")
+            body = template.render(email_kwargs)
+            body_type = "text/html"
+        except TemplateDoesNotExist:
+            body = render_to_string("invoice/credit_note_email.txt", email_kwargs)
+            body_type = "text/plain"
+
+        bcc = [admin[1] for admin in settings.ADMINS]
+        email = EmailMultiAlternatives(subject=subject, body=strip_tags(body), to=[self.user.email], bcc=bcc)
+        email.attach_alternative(body, body_type)
+        email.attach(attachment)
+        email.send()
+        self.save()
+
+    def __getattr__(self, item):
+        if hasattr(self.original_invoice, item):
+            return getattr(self.original_invoice, item)
+        else:
+            return self.__getattribute__(item)
+
+    @property
+    def user(self):
+        return self.original_invoice.user
+
+class CreditNoteItem(models.Model):
+    credit_note = models.ForeignKey(CreditNote, related_name='items', unique=False, on_delete=CASCADE)
     description = models.CharField(max_length=200)
     unit_price = models.DecimalField(max_digits=8, decimal_places=2)
     quantity = models.DecimalField(max_digits=8, decimal_places=2, default=1)
