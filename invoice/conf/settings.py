@@ -8,3 +8,4 @@ INV_LOGO = getattr(settings, 'INV_LOGO', path.join(settings.MEDIA_ROOT, 'static/
 INV_CURRENCY = getattr(settings, 'INV_CURRENCY', u'EUR')
 INV_CURRENCY_SYMBOL = getattr(settings, 'INV_CURRENCY_SYMBOL', u'€')
 INV_EMAIL_SUBJECT = getattr(settings, 'INV_EMAIL_SUBJECT', u'[%s] Invoice %%(invoice_id)s' % (settings.SITE_NAME))
+INV_CREDIT_NOTE_EMAIL_SUBJECT = getattr(settings, 'INV_CREDIT_NOTE_EMAIL_SUBJECT', u'[%s] Credit Note %%(invoice_id)s' % (settings.SITE_NAME))

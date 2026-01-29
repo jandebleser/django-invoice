@@ -188,7 +188,7 @@ class CreditNote(TimeStampedModel):
                               filename=self.file_name())
         pdf.close()
 
-        subject = app_settings.INV_EMAIL_SUBJECT % {"credit_note_id": self.credit_note_id}
+        subject = app_settings.INV_CREDIT_NOTE_EMAIL_SUBJECT % {"credit_note_id": self.credit_note_id}
         email_kwargs = {
             "credit_note": self,
             "SITE_NAME": settings.SITE_NAME,
